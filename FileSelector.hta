@@ -1,0 +1,328 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>Выбор файлов и даты</title>
+<HTA:APPLICATION 
+    ID="FileSelector"
+    APPLICATIONNAME="File Selector"
+    BORDER="thin"
+    BORDERSTYLE="sizeable"
+    ICON=""
+    MAXIMIZEBUTTON="yes"
+    MINIMIZEBUTTON="yes"
+    NAVIGABLE="no"
+    SCROLL="auto"
+    SINGLEINSTANCE="yes"
+    SYSMENU="yes"
+    VERSION="1.0"
+    WINDOWSTATE="normal">
+
+<style>
+    body {
+        font-family: 'Segoe UI', Arial;
+        margin: 20px;
+        background-color: #f0f0f0;
+        font-size: 14pt;
+        min-width: 700px;
+        min-height: 500px;
+        overflow: hidden;
+    }
+    h3 {
+        color: #2c3e50;
+        font-size: 20pt;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+    .container {
+        background: white;
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        display: flex;
+        flex-direction: column;
+        height: calc(100% - 50px);
+        box-sizing: border-box;
+    }
+    .input-row {
+        margin: 15px 0;
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+    .input-row label {
+        display: inline-block;
+        min-width: 180px;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+    .input-controls {
+        display: flex;
+        flex-grow: 1;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+    input[type='text'] {
+        flex-grow: 1;
+        min-width: 300px;
+        margin: 5px 10px;
+        padding: 10px;
+        border: 2px solid #ddd;
+        border-radius: 6px;
+        font-size: 14pt;
+        box-sizing: border-box;
+    }
+    button {
+        margin-left: 10px;
+        padding: 0 25px; /* Убрали вертикальные отступы */
+        background: #3498db;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14pt;
+        font-weight: bold;
+        transition: all 0.3s;
+        white-space: nowrap;
+        height: 48px; /* Фиксированная высота для всех кнопок */
+        line-height: 48px; /* Центрирование текста */
+        box-sizing: border-box;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }    button:hover {
+        background: #2980b9;
+        transform: scale(1.05);
+    }
+    #cancelBtn {
+        background: #95a5a6;
+    }
+    #cancelBtn:hover {
+        background: #7f8c8d;
+    }
+    #runBtn {
+        background: #27ae60;
+    }
+    #runBtn:hover {
+        background: #219653;
+    }
+    .buttons-container {
+        margin-top: auto;
+        padding-top: 20px;
+        display: flex;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+    .hidden-file-input {
+        display: none;
+    }
+    .date-format {
+        font-size: 11pt;
+        color: #666;
+        margin-left: 10px;
+        white-space: nowrap;
+    }
+    
+    /* Адаптивные стили */
+    @media (max-width: 900px) {
+        .input-row {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        .input-controls {
+            width: 100%;
+        }
+        input[type='text'] {
+            min-width: 100%;
+            margin: 5px 0;
+        }
+        button {
+            margin: 5px;
+        }
+        .buttons-container {
+            flex-direction: column;
+            align-items: center;
+        }
+    }
+</style>
+</head>
+<body>
+<div class="container">
+    <h3>Выберите файлы и дату:</h3>
+    
+    <div class="input-row">
+        <label for="xlsFile">Файл XLSX:</label>
+        <div class="input-controls">
+            <input type='text' id='xlsFile' readonly>
+            <button onclick="document.getElementById('xlsFileInput').click()">Обзор</button>
+            <input type="file" id="xlsFileInput" class="hidden-file-input" accept=".xls" onchange="HandleFileSelection('xlsFile', this)">
+        </div>
+    </div>
+    
+    <div class="input-row">
+        <label for="docxFile">Файл DOCX:</label>
+        <div class="input-controls">
+            <input type='text' id='docxFile' readonly>
+            <button onclick="document.getElementById('docxFileInput').click()">Обзор</button>
+            <input type="file" id="docxFileInput" class="hidden-file-input" accept=".docx" onchange="HandleFileSelection('docxFile', this)">
+        </div>
+    </div>
+    
+    <div class="input-row">
+        <label for="dateInput">Дата (дд.мм.гггг):</label>
+        <div class="input-controls">
+            <input type='text' id='dateInput' placeholder="01.01.2025">
+            <span class="date-format">Формат: дд.мм.гггг</span>
+        </div>
+    </div>
+    
+    <div class="buttons-container">
+        <button id="cancelBtn" onclick="window.close()">Отмена</button>
+        <button id="runBtn" onclick="SendData()">Запуск</button>
+    </div>
+</div>
+
+<script language="VBScript">
+    ' Обработка выбора файла
+    Sub HandleFileSelection(inputId, fileInput)
+        If fileInput.value <> "" Then
+            document.getElementById(inputId).value = fileInput.value
+            fileInput.value = ""
+        End If
+    End Sub
+    
+    ' Отправка данных
+    Sub SendData()
+        Dim xls, docx, selectedDate
+        ' Исправлено: getElementById вместо getElementByld
+        xls = document.getElementById("xlsFile").value
+        docx = document.getElementById("docxFile").value
+        selectedDate = document.getElementById("dateInput").value
+        
+        ' Проверка заполнения полей
+        If xls = "" Or docx = "" Or selectedDate = "" Then
+            MsgBox "Пожалуйста, заполните все поля!", vbExclamation, "Ошибка"
+            Exit Sub
+        End If
+        
+        ' Проверка формата даты (дд.мм.гггг)
+        If Not IsDateValid(selectedDate) Then
+            MsgBox "Некорректный формат даты!" & vbCrLf & _
+                   "Используйте формат: дд.мм.гггг", vbExclamation, "Ошибка"
+            Exit Sub
+        End If
+        
+        ' Получение пути к папке скрипта
+        Set fso = CreateObject("Scripting.FileSystemObject")
+        htaPath = window.location.href
+        htaPath = Replace(htaPath, "file:///", "")
+        htaPath = Replace(htaPath, "/", "\")
+        htaPath = Replace(htaPath, "%20", " ")
+        scriptFolder = fso.GetParentFolderName(htaPath)
+        tempFilePath = scriptFolder & "\SelectedFiles.txt"
+        
+        ' Сохранение данных во временный файл
+        Set file = fso.CreateTextFile(tempFilePath, True)
+        file.WriteLine xls
+        file.WriteLine docx
+        file.WriteLine selectedDate
+        file.Close
+        
+        window.close
+    End Sub
+    
+    ' Функция проверки формата даты (дд.мм.гггг)
+    Function IsDateValid(dateStr)
+        IsDateValid = False
+        If Len(dateStr) <> 10 Then Exit Function
+        
+        ' Проверка формата XX.XX.XXXX
+        If Mid(dateStr, 3, 1) <> "." Or Mid(dateStr, 6, 1) <> "." Then Exit Function
+        
+        ' Извлечение компонентов даты
+        dayPart = Left(dateStr, 2)
+        monthPart = Mid(dateStr, 4, 2)
+        yearPart = Right(dateStr, 4)
+        
+        ' Проверка что все части - числа
+        If Not IsNumeric(dayPart) Or Not IsNumeric(monthPart) Or Not IsNumeric(yearPart) Then Exit Function
+        
+        ' Проверка диапазонов
+        dayValue = CInt(dayPart)
+        monthValue = CInt(monthPart)
+        yearValue = CInt(yearPart)
+        
+        If yearValue < 1900 Or yearValue > 2100 Then Exit Function
+        If monthValue < 1 Or monthValue > 12 Then Exit Function
+        If dayValue < 1 Or dayValue > 31 Then Exit Function
+        
+        ' Дополнительная проверка для февраля
+        If monthValue = 2 Then
+            If (yearValue Mod 4 = 0 And yearValue Mod 100 <> 0) Or (yearValue Mod 400 = 0) Then
+                maxDays = 29
+            Else
+                maxDays = 28
+            End If
+            If dayValue > maxDays Then Exit Function
+        End If
+        
+        ' Проверка для месяцев с 30 днями
+        If monthValue = 4 Or monthValue = 6 Or monthValue = 9 Or monthValue = 11 Then
+            If dayValue > 30 Then Exit Function
+        End If
+        
+        IsDateValid = True
+    End Function
+    
+    ' Инициализация при загрузке окна
+    Sub Window_OnLoad
+        window.resizeTo 800, 650
+        CenterWindow
+        
+        ' Установка текущей даты по умолчанию
+        currentDate = Date
+        document.getElementById("dateInput").value = _
+            Right("0" & Day(currentDate), 2) & "." & _
+            Right("0" & Month(currentDate), 2) & "." & _
+            Year(currentDate)
+        
+        ' Обработчик изменения размера окна
+        window.onresize = GetRef("AdjustLayout")
+    End Sub
+    
+    ' Центрирование окна
+    Sub CenterWindow
+        window.moveTo (screen.AvailWidth - 800) \ 2, (screen.AvailHeight - 600) \ 2
+    End Sub
+    
+    ' Адаптация интерфейса при изменении размера окна
+    Sub AdjustLayout
+        ' Получаем текущие размеры окна
+        winWidth = document.body.clientWidth
+        winHeight = document.body.clientHeight
+        
+        ' Адаптация шрифтов
+        If winWidth < 800 Then
+            document.body.style.fontSize = "12pt"
+        Else
+            document.body.style.fontSize = "14pt"
+        End If
+        
+        ' Адаптация отступов
+        If winWidth < 700 Then
+            document.body.style.margin = "10px"
+            ' Получаем контейнер по ID
+            Set container = document.getElementById("mainContainer")
+            If Not container Is Nothing Then
+                container.style.padding = "15px"
+            End If
+        Else
+            document.body.style.margin = "20px"
+            Set container = document.getElementById("mainContainer")
+            If Not container Is Nothing Then
+                container.style.padding = "25px"
+            End If
+        End If
+    End Sub
+</script>
+</body>
+</html>
